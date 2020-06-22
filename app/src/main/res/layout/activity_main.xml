@@ -13,7 +13,8 @@
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
         android:background="#000"
-        app:size="19"
-        app:tabSelect="0" />
+        app:size="5"
+        app:paddingRow="53dp"
+        app:tabSelect="5" />
 
 </RelativeLayout>

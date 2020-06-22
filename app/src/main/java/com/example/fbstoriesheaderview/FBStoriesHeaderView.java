@@ -8,7 +8,6 @@ import android.graphics.Paint;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.view.View;
-import android.view.WindowManager;
 
 import androidx.annotation.Nullable;
 
@@ -17,13 +16,12 @@ public class FBStoriesHeaderView extends View {
     private int coloSelect;
     private int mSize;
     private Context mContext;
-    private Paint mPaintBackGround;
     private Paint mPaintDefault;
     private int barHeight;
     private int widthView, heightView;
     private int paragraph;
     private int paddingParagraph;
-    private int paddingTop, paddingBottom;
+    private int padding;
     private int tabSelect;
     private int endX, startX;
 
@@ -41,34 +39,35 @@ public class FBStoriesHeaderView extends View {
         initView(attrs);
     }
 
-    public static int getWidthScreen(Context context) {
-        WindowManager window = (WindowManager) context.getSystemService(Context.WINDOW_SERVICE);
-        DisplayMetrics displayMetrics = new DisplayMetrics();
-        window.getDefaultDisplay().getMetrics(displayMetrics);
-        return displayMetrics.widthPixels;
-    }
-
     public static int convertDpToPixel(float dp, Context context) {
         return (int) dp * (context.getResources().getDisplayMetrics().densityDpi / DisplayMetrics.DENSITY_DEFAULT);
     }
 
     private void initView(AttributeSet attrs) {
-//        setSaveEnabled(true);
+        setSaveEnabled(true);
 //        setBackgroundColor(Color.TRANSPARENT);
         TypedArray typedArray = mContext.getTheme().obtainStyledAttributes(attrs, R.styleable.FBStoriesHeaderView, 0, 0);
         colorBackground = typedArray.getColor(R.styleable.FBStoriesHeaderView_colorBackGround, Color.parseColor("#80FFFFFF"));
         coloSelect = typedArray.getColor(R.styleable.FBStoriesHeaderView_colorSelect, Color.parseColor("#FFFFFF"));
         mSize = typedArray.getInt(R.styleable.FBStoriesHeaderView_size, 1);
         tabSelect = typedArray.getInt(R.styleable.FBStoriesHeaderView_tabSelect, 0);
+        barHeight = typedArray.getDimensionPixelSize(R.styleable.FBStoriesHeaderView_tabHeight, 10);
+        paddingParagraph = typedArray.getDimensionPixelSize(R.styleable.FBStoriesHeaderView_paddingRow, 8);
         checkSize();
         checkTabSelect();
+        checkPaddingParagraph();
 
-        barHeight = typedArray.getDimensionPixelSize(R.styleable.FBStoriesHeaderView_tabHeight, 5);
-        paddingTop = convertDpToPixel(10, mContext);
-        paddingBottom = convertDpToPixel(10, mContext);
-        paddingParagraph = convertDpToPixel(4, mContext);
+//        padding = convertDpToPixel(10, mContext);
+//        paddingBottom = convertDpToPixel(10, mContext);
+//        paddingParagraph = convertDpToPixel(4, mContext);
         setUpPaint();
 
+    }
+
+    private void checkPaddingParagraph() {
+        if (paddingParagraph < 0) {
+            paddingParagraph = 0;
+        }
     }
 
     private void checkSize() {
@@ -92,14 +91,11 @@ public class FBStoriesHeaderView extends View {
     }
 
     private void setUpPaint() {
-        mPaintBackGround = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaintBackGround.setColor(colorBackground);
-        mPaintBackGround.setStyle(Paint.Style.FILL);
 
         mPaintDefault = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaintDefault.setColor(colorBackground);
         mPaintDefault.setStyle(Paint.Style.STROKE);
-        mPaintDefault.setStrokeWidth(convertDpToPixel(5, mContext));
+        mPaintDefault.setStrokeWidth(barHeight);
         mPaintDefault.setAlpha(255);
     }
 
@@ -116,12 +112,14 @@ public class FBStoriesHeaderView extends View {
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
+        int desiredHeight = barHeight + (2 * padding);
+
         if (widthMode == MeasureSpec.EXACTLY) {
             widthView = widthSize;
         } else if (widthMode == MeasureSpec.AT_MOST) {
             widthView = widthSize;
         } else {
-            widthView = 0;
+            widthView = widthSize;
         }
 
         if (heightMode == MeasureSpec.EXACTLY) {
@@ -129,14 +127,19 @@ public class FBStoriesHeaderView extends View {
         } else if (heightMode == MeasureSpec.AT_MOST) {
             heightView = Math.min(heightSize, barHeight);
         } else {
-            heightView = heightSize;
+            heightView = desiredHeight;
         }
 
+        padding = (heightView - barHeight);
+        if (padding <= convertDpToPixel(20, mContext)) {
+            padding = convertDpToPixel(20, mContext);
+        }
+        checkPaddingParagraph();
         if (mSize == 1)
-            paragraph = (widthView - (mSize * convertDpToPixel(4, mContext))) / mSize;
-        else paragraph = (widthView - ((mSize - 1) * convertDpToPixel(4, mContext))) / mSize;
+            paragraph = (widthView - (mSize * paddingParagraph)) / mSize;
+        else paragraph = (widthView - ((mSize - 1) * paddingParagraph)) / mSize;
 
-        setMeasuredDimension(widthView, heightView + paddingBottom + paddingTop);
+        setMeasuredDimension(widthView, heightMode == MeasureSpec.EXACTLY ? heightView : heightView + padding - barHeight);
     }
 
     @Override
@@ -148,7 +151,7 @@ public class FBStoriesHeaderView extends View {
             if (i == tabSelect)
                 mPaintDefault.setColor(coloSelect);
             else mPaintDefault.setColor(colorBackground);
-            canvas.drawLine(startX, paddingTop, endX + paragraph, paddingTop, mPaintDefault);
+            canvas.drawLine(startX, padding / 2, endX + paragraph, padding / 2, mPaintDefault);
             startX = endX + paddingParagraph + paragraph;
             endX = startX;
         }
@@ -156,6 +159,33 @@ public class FBStoriesHeaderView extends View {
 
     public void setTabSelect(int tabSelect) {
         this.tabSelect = tabSelect;
+        checkTabSelect();
+        invalidate();
+    }
+
+    public void setColorBackground(int colorBackground) {
+        this.colorBackground = colorBackground;
+        invalidate();
+    }
+
+    public void setColoSelect(int coloSelect) {
+        this.coloSelect = coloSelect;
+        invalidate();
+    }
+
+    public void setmSize(int mSize) {
+        this.mSize = mSize;
+        checkSize();
+        invalidate();
+    }
+
+    public void setBarHeight(int barHeight) {
+        this.barHeight = barHeight;
+        invalidate();
+    }
+
+    public void setPaddingParagraph(int paddingParagraph) {
+        this.paddingParagraph = paddingParagraph;
         invalidate();
     }
 }
