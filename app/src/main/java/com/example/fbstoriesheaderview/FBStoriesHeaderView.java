@@ -19,11 +19,11 @@ public class FBStoriesHeaderView extends View {
     private Paint mPaintDefault;
     private int barHeight;
     private int widthView, heightView;
-    private int paragraph;
-    private int paddingParagraph;
+    private float paragraph;
+    private float paddingParagraph;
     private int padding;
     private int tabSelect;
-    private int endX, startX;
+    private float endX, startX;
 
     public FBStoriesHeaderView(Context context) {
         this(context, null);
@@ -151,7 +151,7 @@ public class FBStoriesHeaderView extends View {
             if (i == tabSelect)
                 mPaintDefault.setColor(coloSelect);
             else mPaintDefault.setColor(colorBackground);
-            canvas.drawLine(startX, padding / 2, endX + paragraph, padding / 2, mPaintDefault);
+            canvas.drawLine(startX, padding >> 1, endX + paragraph, padding >> 1, mPaintDefault);
             startX = endX + paddingParagraph + paragraph;
             endX = startX;
         }

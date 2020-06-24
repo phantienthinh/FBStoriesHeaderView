@@ -10,11 +10,12 @@
     <com.example.fbstoriesheaderview.FBStoriesHeaderView
         android:id="@+id/header"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_centerInParent="true"
         android:background="#000"
-        app:size="5"
-        app:paddingRow="53dp"
-        app:tabSelect="5" />
+        app:size="21"
+        app:colorBackGround="#fff"
+        app:colorSelect="@color/colorAccent"
+        app:tabSelect="52" />
 
 </RelativeLayout>
